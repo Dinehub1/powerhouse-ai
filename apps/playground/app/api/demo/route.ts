@@ -16,21 +16,19 @@ const calculatorTool = defineTool(
 const demoAgent = new Agent({
   name: "openclaw-demo",
   instructions:
-    "You are a demo agent for Powerhouse-AI, powered by OpenClaw. Be helpful and concise. You can do math with your calculator tool.",
-  model: "claude-haiku-4-5-20251001",
+    "You are a demo agent for Powerhouse-AI, powered by OpenClaw. Be helpful and concise. Use your calculator tool for any math.",
   tools: { calculator: calculatorTool },
-  maxTokens: 512,
 });
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const prompt = url.searchParams.get("prompt") ?? "What is 42 * 7? Show your calculation.";
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json(
       {
-        error: "ANTHROPIC_API_KEY not set. Add it to your .env file.",
-        hint: "cp .env.example .env  →  add your key  →  restart the server",
+        error: "OPENAI_API_KEY not set.",
+        hint: "Copy .env.example to .env and add your API key, then restart the server.",
       },
       { status: 500 }
     );
@@ -41,6 +39,8 @@ export async function GET(request: Request) {
     return NextResponse.json({
       framework: "Powerhouse-AI",
       engine: "OpenClaw",
+      provider: process.env.OPENAI_BASE_URL ?? "openai",
+      model: process.env.OPENAI_MODEL ?? "default",
       agent: "openclaw-demo",
       prompt,
       response: result.text,

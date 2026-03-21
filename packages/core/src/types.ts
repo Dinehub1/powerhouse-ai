@@ -1,17 +1,20 @@
 import { z } from "zod";
 
 export type ModelId =
-  | "claude-opus-4-6"
-  | "claude-sonnet-4-6"
-  | "claude-haiku-4-5-20251001"
-  | (string & {});
+  | "moonshotai/kimi-k2.5"
+  | "gpt-4o"
+  | "gpt-4o-mini"
+  | "gpt-4.1"
+  | "meta/llama-3.3-70b-instruct"
+  | "nvidia/llama-3.1-nemotron-ultra-253b-v1"
+  | (string & {}); // any model ID from your provider
 
 export interface AgentConfig<TTools extends ToolMap = ToolMap> {
   /** Agent name — used in traces and supervisor delegation */
   name: string;
   /** System instructions for the agent */
   instructions: string;
-  /** Claude model to use */
+  /** Model ID — defaults to OPENAI_MODEL env var or moonshotai/kimi-k2.5 */
   model?: ModelId;
   /** Typed tools available to the agent */
   tools?: TTools;

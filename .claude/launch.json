@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "playground (Next.js)",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "powerhouse-ai-playground", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "all packages (Turbo)",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev"],
+      "port": 3000
+    },
+    {
+      "name": "core (watch build)",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@powerhouse-ai/core", "dev"],
+      "port": null
+    }
+  ]
+}
