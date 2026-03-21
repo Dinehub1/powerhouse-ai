@@ -1,8 +1,8 @@
 # ⚡ Powerhouse-AI Agents
 
-**Claude-first, open-source TypeScript framework for building production AI agents.**
+**OpenClaw-powered, open-source TypeScript agent framework for building production AI agents.**
 
-Inspired by VoltAgent — built natively on Anthropic's Claude SDK + Vercel infrastructure.
+Inspired by VoltAgent — built natively on the OpenClaw API + Vercel infrastructure.
 
 ## What is it?
 
@@ -16,7 +16,7 @@ Powerhouse-AI gives you everything you need to build, run, and operate AI agents
 ## Quick Start
 
 ```bash
-npm install @powerhouse-ai/core
+pnpm add @powerhouse-ai/core
 ```
 
 ### Simple Agent
@@ -27,7 +27,7 @@ import { z } from "zod";
 
 const agent = new Agent({
   name: "research-assistant",
-  instructions: "You are a research assistant. Be thorough and cite sources.",
+  instructions: "You are a research assistant powered by OpenClaw.",
   model: "claude-sonnet-4-6",
   tools: {
     search: defineTool(
@@ -112,7 +112,7 @@ import { Agent } from "@powerhouse-ai/core";
 
 const coderAgent = new Agent({
   name: "coder",
-  instructions: "You write and execute code to solve problems. Always test your code.",
+  instructions: "You are an OpenClaw-powered coding agent. Write and test code to solve problems.",
   tools: {
     execute_code: createCodeExecutionTool({ runtime: "node24" }),
   },
@@ -131,35 +131,19 @@ const { text } = await coderAgent.generate(
 | `@powerhouse-ai/workflow` | WorkflowRunner with human-in-the-loop approval |
 | `@powerhouse-ai/sandbox` | Code execution via Vercel Sandbox |
 
-## Supported Models
-
-All Claude models via Anthropic API:
+## Supported Models (via OpenClaw)
 
 | Model | ID | Best For |
 |-------|-----|----------|
-| Claude Opus 4.6 | `claude-opus-4-6` | Complex reasoning, hard tasks |
-| Claude Sonnet 4.6 | `claude-sonnet-4-6` | Balanced — default |
-| Claude Haiku 4.5 | `claude-haiku-4-5-20251001` | Fast, cost-efficient |
-
-## Memory Adapters
-
-```typescript
-import { InMemoryAdapter, SQLiteAdapter } from "@powerhouse-ai/core";
-
-// Development / testing
-const memory = new InMemoryAdapter();
-
-// Production (local SQLite, requires: npm install better-sqlite3)
-const memory = new SQLiteAdapter("./agents.db");
-
-const agent = new Agent({ name: "my-agent", instructions: "...", memory });
-```
+| OpenClaw Opus 4.6 | `claude-opus-4-6` | Complex reasoning, hard tasks |
+| OpenClaw Sonnet 4.6 | `claude-sonnet-4-6` | Balanced — default |
+| OpenClaw Haiku 4.5 | `claude-haiku-4-5-20251001` | Fast, cost-efficient |
 
 ## Environment Variables
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-...
-VERCEL_SANDBOX_TOKEN=...  # Required for @powerhouse-ai/sandbox
+ANTHROPIC_API_KEY=sk-ant-...          # Your OpenClaw API key
+VERCEL_SANDBOX_TOKEN=...              # Required for @powerhouse-ai/sandbox
 ```
 
 ## Architecture
@@ -176,26 +160,24 @@ powerhouse-ai/
 
 ## Comparison with VoltAgent
 
-| Feature | VoltAgent | Powerhouse-AI |
+| Feature | VoltAgent | **Powerhouse-AI** |
 |---------|-----------|---------------|
 | Language | TypeScript | TypeScript |
-| Primary LLM | Multi-provider | **Claude-first** (Anthropic) |
+| Primary LLM | Multi-provider | **OpenClaw** (Anthropic) |
 | Workflows | Custom DSL | **Pure TypeScript** |
 | Code Execution | E2B / Daytona | **Vercel Sandbox** (Firecracker) |
 | Memory | SQLite, Postgres, Supabase | SQLite, Postgres (extensible) |
 | Human-in-the-loop | Yes | Yes (approval gates) |
-| Dashboard | VoltOps | Built-in HTTP API |
 
 ## Contributing
 
 ```bash
-git clone https://github.com/powerhouse-ai/powerhouse-ai
+git clone https://github.com/Dinehub1/powerhouse-ai
 cd powerhouse-ai
-npm install
-npm run build
-npm run test
+pnpm install
+pnpm build
 ```
 
 ## License
 
-MIT
+MIT — built with OpenClaw ⚡

@@ -59,7 +59,7 @@ export class PowerhouseAI {
     });
 
     server.listen(this.port, () => {
-      console.log(`\n🏠 Powerhouse-AI running on http://localhost:${this.port}`);
+      console.log(`\n⚡ Powerhouse-AI (OpenClaw) running on http://localhost:${this.port}`);
       console.log(`   Agents: ${[...this.agents.keys()].join(", ")}`);
       console.log(`   API: POST /agents/:name/generate`);
     });

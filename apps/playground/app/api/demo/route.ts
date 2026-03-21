@@ -5,7 +5,7 @@ import { z } from "zod";
 const calculatorTool = defineTool(
   "Perform arithmetic calculations",
   z.object({
-    expression: z.string().describe("A safe math expression, e.g. '2 + 2'"),
+    expression: z.string().describe("A math expression, e.g. '2 + 2'"),
   }),
   ({ expression }) => {
     const result = Function(`"use strict"; return (${expression})`)();
@@ -14,8 +14,9 @@ const calculatorTool = defineTool(
 );
 
 const demoAgent = new Agent({
-  name: "demo-agent",
-  instructions: "You are a helpful demo agent for Powerhouse-AI. Be concise.",
+  name: "openclaw-demo",
+  instructions:
+    "You are a demo agent for Powerhouse-AI, powered by OpenClaw. Be helpful and concise. You can do math with your calculator tool.",
   model: "claude-haiku-4-5-20251001",
   tools: { calculator: calculatorTool },
   maxTokens: 512,
@@ -23,12 +24,24 @@ const demoAgent = new Agent({
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const prompt = url.searchParams.get("prompt") ?? "What is 42 * 7? Show your work.";
+  const prompt = url.searchParams.get("prompt") ?? "What is 42 * 7? Show your calculation.";
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json(
+      {
+        error: "ANTHROPIC_API_KEY not set. Add it to your .env file.",
+        hint: "cp .env.example .env  →  add your key  →  restart the server",
+      },
+      { status: 500 }
+    );
+  }
 
   try {
     const result = await demoAgent.generate(prompt);
     return NextResponse.json({
-      agent: "demo-agent",
+      framework: "Powerhouse-AI",
+      engine: "OpenClaw",
+      agent: "openclaw-demo",
       prompt,
       response: result.text,
       usage: result.usage,
