@@ -8,17 +8,17 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body
-        style={{
-          margin: 0,
-          background: "#09090b",
-          color: "#fafafa",
-          fontFamily: "'Segoe UI', system-ui, sans-serif",
-          minHeight: "100vh",
-        }}
-      >
-        {children}
-      </body>
+      <head>
+        <style>{`
+          * { box-sizing: border-box; }
+          body { margin: 0; background: #09090b; color: #fafafa; font-family: 'Segoe UI', system-ui, sans-serif; }
+          @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+          ::-webkit-scrollbar { width: 6px; height: 6px; }
+          ::-webkit-scrollbar-track { background: transparent; }
+          ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+        `}</style>
+      </head>
+      <body>{children}</body>
     </html>
   );
 }
