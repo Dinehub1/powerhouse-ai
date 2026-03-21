@@ -142,7 +142,7 @@ export class WorkflowRunner<TInput = unknown, TOutput = unknown> {
           };
 
           const output = await withTimeout(
-            regularStep.execute(currentInput, ctx),
+            Promise.resolve(regularStep.execute(currentInput, ctx)),
             regularStep.timeout ?? 60_000
           );
 

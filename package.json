@@ -1,7 +1,7 @@
 {
   "name": "powerhouse-ai",
   "private": true,
-  "workspaces": ["packages/*", "apps/*"],
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
