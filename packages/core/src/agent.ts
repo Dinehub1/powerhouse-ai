@@ -170,10 +170,11 @@ export class Agent implements IAgent {
   }
 
   /**
-   * Stream a response — yields text chunks as they arrive
+   * Stream a response — yields text chunks as they arrive, with full agentic tool-calling loop
    */
   async *stream(prompt: string, options: GenerateOptions = {}): AsyncGenerator<StreamChunk> {
     const conversationId = options.conversationId ?? crypto.randomUUID();
+    const maxSteps = options.maxSteps ?? DEFAULT_MAX_STEPS;
     const history = this.conversationHistory.get(conversationId) ?? [];
     const messages: Message[] = [...history, { role: "user", content: prompt }];
 
@@ -186,35 +187,90 @@ export class Agent implements IAgent {
     const openaiTools = buildOpenAITools(tools, this.config.subAgents ?? []);
 
     let fullText = "";
-    const stream = await this.client.chat.completions.create({
-      model: this.config.model ?? DEFAULT_MODEL,
-      max_tokens: this.config.maxTokens ?? DEFAULT_MAX_TOKENS,
-      temperature: this.config.temperature ?? DEFAULT_TEMPERATURE,
-      tools: openaiTools.length > 0 ? openaiTools : undefined,
-      stream: true,
-      messages: [
-        { role: "system", content: instructions },
-        ...toOpenAIMessages(messages),
-      ],
-    });
+    let oaiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      { role: "system", content: instructions },
+      ...toOpenAIMessages(messages),
+    ];
 
-    for await (const chunk of stream) {
-      const delta = chunk.choices[0]?.delta;
-      if (delta?.content) {
-        fullText += delta.content;
-        yield { type: "text", text: delta.content };
-      }
-      if (delta?.tool_calls) {
-        for (const tc of delta.tool_calls) {
-          if (tc.function?.name) {
-            yield { type: "tool_start", toolCall: { name: tc.function.name } };
+    for (let step = 0; step < maxSteps; step++) {
+      // Collect tool calls from this streaming step
+      const pendingToolCalls: Array<{ id: string; name: string; argsJson: string }> = [];
+      let finishReason: string | null = null;
+      let stepText = "";
+
+      const stream = await this.client.chat.completions.create({
+        model: this.config.model ?? DEFAULT_MODEL,
+        max_tokens: this.config.maxTokens ?? DEFAULT_MAX_TOKENS,
+        temperature: this.config.temperature ?? DEFAULT_TEMPERATURE,
+        tools: openaiTools.length > 0 ? openaiTools : undefined,
+        stream: true,
+        messages: oaiMessages,
+      });
+
+      for await (const chunk of stream) {
+        const delta = chunk.choices[0]?.delta;
+        if (delta?.content) {
+          stepText += delta.content;
+          fullText += delta.content;
+          yield { type: "text", text: delta.content };
+        }
+        if (delta?.tool_calls) {
+          for (const tc of delta.tool_calls) {
+            const idx = tc.index ?? 0;
+            if (!pendingToolCalls[idx]) {
+              pendingToolCalls[idx] = { id: tc.id ?? "", name: tc.function?.name ?? "", argsJson: "" };
+              if (tc.function?.name) {
+                yield { type: "tool_start", toolCall: { name: tc.function.name } };
+              }
+            } else {
+              if (tc.id) pendingToolCalls[idx].id = tc.id;
+              if (tc.function?.name) pendingToolCalls[idx].name = tc.function.name;
+            }
+            if (tc.function?.arguments) {
+              pendingToolCalls[idx].argsJson += tc.function.arguments;
+            }
           }
         }
+        if (chunk.choices[0]?.finish_reason) {
+          finishReason = chunk.choices[0].finish_reason;
+        }
       }
-      if (chunk.choices[0]?.finish_reason) {
-        yield { type: "done" };
+
+      // No tool calls — we're done
+      if (pendingToolCalls.length === 0 || finishReason === "stop") {
+        break;
+      }
+
+      // Execute tool calls and add results to message history
+      const assistantToolMsg: OpenAI.Chat.ChatCompletionAssistantMessageParam = {
+        role: "assistant",
+        content: stepText || null,
+        tool_calls: pendingToolCalls.map((tc) => ({
+          id: tc.id,
+          type: "function" as const,
+          function: { name: tc.name, arguments: tc.argsJson },
+        })),
+      };
+      oaiMessages = [...oaiMessages, assistantToolMsg];
+
+      for (const tc of pendingToolCalls) {
+        let output: string;
+        try {
+          const input = JSON.parse(tc.argsJson) as Record<string, unknown>;
+          const result = await executeToolCall(tc.id, tc.name, input, tools, this.config.subAgents ?? [], {
+            agentName: this.name,
+            runId: conversationId,
+            messages,
+          });
+          output = String(result.output);
+        } catch (err) {
+          output = `Error: ${String(err)}`;
+        }
+        oaiMessages.push({ role: "tool", tool_call_id: tc.id, content: output });
       }
     }
+
+    yield { type: "done" };
 
     this.conversationHistory.set(conversationId, [
       ...messages,
