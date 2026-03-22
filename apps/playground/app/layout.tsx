@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import Sidebar from "./components/Sidebar";
 
 export const metadata: Metadata = {
-  title: "OpenClaw — Powerhouse-AI",
-  description: "Open-source TypeScript agent framework powered by OpenClaw",
+  title: "Powerhouse-AI · Mission Control",
+  description: "Open-source AI agent platform — build, deploy, and monitor autonomous agents",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -18,7 +19,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
         `}</style>
       </head>
-      <body>{children}</body>
+      <body>
+        <Sidebar />
+        <main style={{ marginLeft: 240, minHeight: "100vh" }}>{children}</main>
+      </body>
     </html>
   );
 }
